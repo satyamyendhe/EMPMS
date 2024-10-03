@@ -1,0 +1,25 @@
+.offcanvas {
+  &.offcanvas-filter-sidebar {
+    @include media-breakpoint-up(xl){
+      z-index: 0;
+      position: sticky;
+      top: $top-nav-height;
+      height: calc(100vh - #{$top-nav-height});
+      visibility: visible;
+      background-color: transparent;
+      box-shadow: none;
+    }
+    &.offcanvas-start {
+      @include media-breakpoint-up(xl){
+        border-right: 0px;
+        transform: translateX(0%);
+      }
+    }
+    .form-check-input[type=checkbox], .form-check-input[type=radio] {
+      background-color: var(--#{$prefix}white);
+      &:checked {
+        background-color: var(--#{$prefix}primary);
+      }
+    }
+  }
+}
