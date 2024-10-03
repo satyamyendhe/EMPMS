@@ -1,0 +1,76 @@
+version: '3.0'
+
+services:
+  postgresDB:
+    container_name: empms.database
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data 
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    networks:
+      - empms-network
+
+  dbhelper:
+    container_name: empms.dbhelper
+    build:
+      context: ../vsys-empms-db/
+    environment:
+      DB_PASS: ${DB_PASS}
+      DB_USER: ${DB_USER}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: postgresDB 
+      DB_PORT: ${DB_PORT}
+      DBHELPER_PORT: ${DBHELPER_PORT}
+      DBHELPER_HOST: ${DBHELPER_HOST}
+    ports:
+      - "7200:7200"
+    depends_on:
+      - postgresDB
+    networks:
+      - empms-network
+
+  rest:
+    container_name: empms.rest
+    build:
+      context: ../vsys-empms-rest/
+      dockerfile: Dockerfile
+    depends_on:
+      - dbhelper
+    environment:
+      REST_HOST: ${REST_HOST}
+      REST_PORT: ${REST_PORT}
+      DBHELPER_HOST: dbhelper  
+      DBHELPER_PORT: ${DBHELPER_PORT}
+    ports:
+      - "7100:7100"
+    networks:
+      - empms-network
+
+  web:
+    container_name: empms.web
+    build:
+      context: ../vsys-empms-web/
+      dockerfile: Dockerfile  
+    depends_on:
+      - rest
+    environment:
+      REST_HOST: rest
+      REST_PORT: ${REST_PORT}
+      WEB_PORT: ${WEB_PORT}
+      WEB_HOST: ${WEB_HOST}
+    ports:
+      - "3200:3200"
+    networks:
+      - empms-network
+
+volumes:
+  pgdata:
+
+networks:
+  empms-network:
+    driver: bridge
